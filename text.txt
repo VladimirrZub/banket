@@ -1,0 +1,1 @@
+npm install firebase styled-components lucide-react react-router-dom react-firebase-hooks
