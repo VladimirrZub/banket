@@ -9,10 +9,16 @@ import { UserPlus, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
 const Container = styled.div`
 	min-height: 100vh;
 	background-color: #f5f5f5;
+	display: flex;
+	flex-direction: column;
 `
 
 const Header = styled.div`
-	padding: 20px;
+	padding: 24px 5%;
+
+	@media (min-width: 768px) {
+		padding: 32px 8%;
+	}
 `
 
 const BackButton = styled.button`
@@ -20,53 +26,65 @@ const BackButton = styled.button`
 	border: none;
 	cursor: pointer;
 	color: #1a1a1a;
-	padding: 8px;
-	display: flex;
+	padding: 8px 0;
+	display: inline-flex;
 	align-items: center;
-	gap: 4px;
-	font-size: 14px;
+	gap: 8px;
+	font-size: 16px;
+	font-weight: 500;
+
+	&:hover {
+		opacity: 0.7;
+	}
 `
 
-
 const Content = styled.div`
-	padding: 20px 5%;
-	max-width: 500px;
-	margin: 0 auto;
-	width: 100%;
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px 5% 60px;
 
 	@media (min-width: 768px) {
-		padding: 40px 5%;
+		padding: 40px 8% 80px;
 	}
 `
 
 const Card = styled.div`
 	background: white;
-	border-radius: 24px;
-	padding: 32px 24px;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	border-radius: 32px;
+	padding: 40px 32px;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+	max-width: 560px;
+	width: 100%;
 
 	@media (min-width: 768px) {
-		padding: 48px 40px;
-		border-radius: 32px;
+		padding: 56px 48px;
+		border-radius: 40px;
 	}
 `
 
 const Title = styled.h1`
-	font-size: 32px;
-	font-weight: 600;
+	font-size: 36px;
+	font-weight: 700;
 	margin-bottom: 12px;
 	color: #1a1a1a;
 	letter-spacing: -0.5px;
 
 	@media (min-width: 768px) {
-		font-size: 40px;
+		font-size: 44px;
 	}
 `
 
 const Subtitle = styled.p`
-	font-size: 14px;
+	font-size: 16px;
 	color: #666;
-	margin-bottom: 32px;
+	margin-bottom: 40px;
+
+	@media (min-width: 768px) {
+		font-size: 18px;
+		margin-bottom: 48px;
+	}
 `
 
 const InputGroup = styled.div`
@@ -76,75 +94,107 @@ const InputGroup = styled.div`
 const Label = styled.label`
 	display: block;
 	font-size: 14px;
-	font-weight: 500;
+	font-weight: 600;
 	color: #333;
-	margin-bottom: 8px;
+	margin-bottom: 10px;
+
+	@media (min-width: 768px) {
+		font-size: 15px;
+		margin-bottom: 12px;
+	}
 `
 
 const Input = styled.input`
 	width: 100%;
-	padding: 14px 16px;
-	border: 1px solid ${props => (props.error ? '#e53935' : '#e0e0e0')};
-	border-radius: 12px;
+	padding: 16px 18px;
+	border: 1.5px solid ${props => (props.error ? '#e53935' : '#e0e0e0')};
+	border-radius: 16px;
 	font-size: 16px;
 	transition: all 0.2s;
+	background: white;
 
 	&:focus {
 		outline: none;
 		border-color: #1a1a1a;
+	}
+
+	@media (min-width: 768px) {
+		padding: 18px 20px;
+		font-size: 17px;
+		border-radius: 18px;
 	}
 `
 
 const ErrorMessage = styled.div`
 	display: flex;
 	align-items: center;
-	gap: 6px;
+	gap: 8px;
 	color: #e53935;
 	font-size: 12px;
-	margin-top: 6px;
+	margin-top: 8px;
 `
 
 const SuccessMessage = styled.div`
 	display: flex;
 	align-items: center;
-	gap: 6px;
+	gap: 8px;
 	color: #4caf50;
-	font-size: 12px;
-	margin-top: 6px;
+	font-size: 13px;
+	margin-top: 8px;
 `
 
 const Button = styled.button`
 	width: 100%;
-	padding: 14px;
+	padding: 16px;
 	background: #1a1a1a;
 	color: white;
 	border: none;
-	border-radius: 12px;
-	font-size: 16px;
-	font-weight: 500;
+	border-radius: 16px;
+	font-size: 17px;
+	font-weight: 600;
 	cursor: pointer;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 8px;
-	transition: background 0.2s;
+	gap: 10px;
+	transition: all 0.2s;
+	margin-top: 16px;
 
 	&:hover {
 		background: #333;
+		transform: translateY(-1px);
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		transform: none;
+	}
+
+	@media (min-width: 768px) {
+		padding: 18px;
+		font-size: 18px;
+		border-radius: 18px;
+		margin-top: 20px;
 	}
 `
 
 const LinkText = styled.div`
 	text-align: center;
-	margin-top: 24px;
-	font-size: 14px;
+	margin-top: 32px;
+	font-size: 15px;
 	color: #666;
 
 	a {
 		color: #1a1a1a;
 		text-decoration: none;
-		font-weight: 500;
-		margin-left: 4px;
+		font-weight: 600;
+		margin-left: 6px;
+	}
+
+	@media (min-width: 768px) {
+		margin-top: 40px;
+		font-size: 16px;
 	}
 `
 
@@ -249,18 +299,18 @@ const Register = () => {
 		<Container>
 			<Header>
 				<BackButton onClick={() => navigate('/')}>
-					<ArrowLeft size={18} />
+					<ArrowLeft size={20} />
 					На главную
 				</BackButton>
 			</Header>
 			<Content>
 				<Card>
-					<Title>Регистрация</Title>
-					<Subtitle>Создайте новый аккаунт</Subtitle>
+					<Title>Создать аккаунт</Title>
+					<Subtitle>Заполните форму для регистрации</Subtitle>
 
 					<form onSubmit={handleRegister}>
 						<InputGroup>
-							<Label>Логин (будет использоваться для входа)</Label>
+							<Label>Логин</Label>
 							<Input
 								value={formData.login}
 								onChange={e =>
@@ -371,7 +421,7 @@ const Register = () => {
 
 						{success && (
 							<SuccessMessage>
-								<CheckCircle size={14} />
+								<CheckCircle size={16} />
 								{success}
 							</SuccessMessage>
 						)}
@@ -383,7 +433,7 @@ const Register = () => {
 						)}
 
 						<Button type='submit' disabled={loading}>
-							<UserPlus size={18} />
+							<UserPlus size={20} />
 							{loading ? 'Регистрация...' : 'Зарегистрироваться'}
 						</Button>
 					</form>

@@ -7,7 +7,7 @@ import {
 	collection,
 	query,
 	where,
-	getDocs,
+	onSnapshot,
 	updateDoc,
 	doc,
 	getDoc,
@@ -22,10 +22,9 @@ import {
 	Phone,
 	Mail,
 	Clock,
-	MapPin,
 	CreditCard,
+	Plus,
 } from 'lucide-react'
-import Slider from '../components/Slider'
 
 const Container = styled.div`
 	min-height: 100vh;
@@ -34,17 +33,28 @@ const Container = styled.div`
 
 const Header = styled.div`
 	background: white;
-	padding: 20px;
+	padding: 20px 5%;
 	border-bottom: 1px solid #e0e0e0;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	position: sticky;
+	top: 0;
+	z-index: 10;
+
+	@media (min-width: 768px) {
+		padding: 24px 8%;
+	}
 `
 
 const HeaderTitle = styled.h1`
 	font-size: 24px;
-	font-weight: 600;
+	font-weight: 700;
 	color: #1a1a1a;
+
+	@media (min-width: 768px) {
+		font-size: 32px;
+	}
 `
 
 const LogoutButton = styled.button`
@@ -52,51 +62,112 @@ const LogoutButton = styled.button`
 	border: none;
 	cursor: pointer;
 	color: #666;
-	padding: 8px;
+	padding: 10px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+
+	&:hover {
+		color: #1a1a1a;
+	}
+
+	@media (min-width: 768px) {
+		font-size: 16px;
+		gap: 10px;
+	}
 `
 
 const Content = styled.div`
-	padding: 20px;
-	max-width: 390px;
+	max-width: 1200px;
 	margin: 0 auto;
-	width: 100%;
+	padding: 30px 5%;
+
+	@media (min-width: 768px) {
+		padding: 48px 8%;
+	}
 `
 
 const Section = styled.div`
-	margin-bottom: 32px;
+	margin-bottom: 48px;
+
+	@media (min-width: 768px) {
+		margin-bottom: 64px;
+	}
 `
 
 const SectionTitle = styled.h2`
-	font-size: 18px;
+	font-size: 22px;
 	font-weight: 600;
 	color: #333;
-	margin-bottom: 16px;
+	margin-bottom: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+
+	@media (min-width: 768px) {
+		font-size: 28px;
+		margin-bottom: 28px;
+	}
+`
+
+const Badge = styled.span`
+	background: #1a1a1a;
+	color: white;
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 14px;
+	font-weight: 500;
 `
 
 const ProfileCard = styled.div`
 	background: white;
-	border-radius: 16px;
-	padding: 20px;
-	margin-bottom: 24px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	border-radius: 24px;
+	padding: 28px;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+
+	@media (min-width: 768px) {
+		padding: 40px;
+		border-radius: 32px;
+	}
 `
 
 const ProfileHeader = styled.div`
 	display: flex;
+	flex-direction: column;
 	align-items: center;
-	gap: 16px;
-	margin-bottom: 16px;
+	text-align: center;
+	margin-bottom: 28px;
+
+	@media (min-width: 768px) {
+		flex-direction: row;
+		text-align: left;
+		gap: 24px;
+		margin-bottom: 32px;
+	}
 `
 
 const ProfileAvatar = styled.div`
-	width: 60px;
-	height: 60px;
+	width: 80px;
+	height: 80px;
 	border-radius: 50%;
 	background: #1a1a1a;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	color: white;
+	margin-bottom: 16px;
+
+	@media (min-width: 768px) {
+		width: 100px;
+		height: 100px;
+		margin-bottom: 0;
+
+		svg {
+			width: 48px;
+			height: 48px;
+		}
+	}
 `
 
 const ProfileInfo = styled.div`
@@ -104,54 +175,117 @@ const ProfileInfo = styled.div`
 `
 
 const ProfileName = styled.h3`
-	font-size: 18px;
-	font-weight: 600;
+	font-size: 24px;
+	font-weight: 700;
 	color: #1a1a1a;
+	margin-bottom: 8px;
+
+	@media (min-width: 768px) {
+		font-size: 28px;
+	}
 `
 
-const ProfileDetails = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	margin-top: 12px;
-	padding-top: 12px;
-	border-top: 1px solid #f0f0f0;
-`
-
-const ProfileDetail = styled.div`
+const ProfileEmail = styled.p`
 	font-size: 14px;
 	color: #666;
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	justify-content: center;
+	gap: 6px;
+
+	@media (min-width: 768px) {
+		justify-content: flex-start;
+		font-size: 16px;
+	}
+`
+
+const ProfileDetails = styled.div`
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 16px;
+	padding-top: 24px;
+	border-top: 1px solid #f0f0f0;
+
+	@media (min-width: 640px) {
+		grid-template-columns: repeat(2, 1fr);
+	}
+`
+
+const ProfileDetail = styled.div`
+	font-size: 15px;
+	color: #555;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px;
+	background: #f9f9f9;
+	border-radius: 16px;
+
+	svg {
+		color: #1a1a1a;
+		flex-shrink: 0;
+	}
+
+	@media (min-width: 768px) {
+		font-size: 16px;
+		padding: 16px;
+		gap: 14px;
+	}
+`
+
+const BookingsGrid = styled.div`
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 20px;
+
+	@media (min-width: 768px) {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 24px;
+	}
 `
 
 const BookingCard = styled.div`
 	background: white;
-	border-radius: 16px;
-	padding: 16px;
-	margin-bottom: 12px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	border-radius: 20px;
+	padding: 20px;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+	transition: transform 0.2s;
+
+	&:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+	}
+
+	@media (min-width: 768px) {
+		padding: 24px;
+		border-radius: 24px;
+	}
 `
 
-const BookingInfo = styled.div`
+const BookingHeader = styled.div`
 	display: flex;
 	justify-content: space-between;
 	align-items: flex-start;
-	margin-bottom: 12px;
+	margin-bottom: 16px;
+	flex-wrap: wrap;
+	gap: 12px;
 `
 
 const VenueName = styled.h3`
-	font-size: 16px;
-	font-weight: 600;
+	font-size: 18px;
+	font-weight: 700;
 	color: #1a1a1a;
+
+	@media (min-width: 768px) {
+		font-size: 20px;
+	}
 `
 
 const Status = styled.span`
-	padding: 4px 10px;
-	border-radius: 20px;
+	padding: 6px 14px;
+	border-radius: 30px;
 	font-size: 12px;
-	font-weight: 500;
+	font-weight: 600;
 	background: ${props => {
 		switch (props.status) {
 			case 'Новая':
@@ -176,67 +310,157 @@ const Status = styled.span`
 				return '#666'
 		}
 	}};
+
+	@media (min-width: 768px) {
+		font-size: 13px;
+		padding: 6px 16px;
+	}
 `
 
-const BookingDetail = styled.p`
-	font-size: 13px;
-	color: #666;
-	margin: 6px 0;
+const BookingDetails = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin: 16px 0;
+	padding: 16px 0;
+	border-top: 1px solid #f0f0f0;
+	border-bottom: 1px solid #f0f0f0;
+`
+
+const BookingDetail = styled.div`
+	font-size: 14px;
+	color: #555;
 	display: flex;
 	align-items: center;
-	gap: 6px;
+	gap: 10px;
+
+	@media (min-width: 768px) {
+		font-size: 15px;
+	}
 `
 
 const ReviewSection = styled.div`
-	margin-top: 12px;
-	padding-top: 12px;
-	border-top: 1px solid #e0e0e0;
+	margin-top: 16px;
 `
 
-const ReviewText = styled.textarea`
+const ReviewTextarea = styled.textarea`
 	width: 100%;
-	padding: 12px;
-	border: 1px solid #e0e0e0;
-	border-radius: 12px;
+	padding: 14px;
+	border: 1.5px solid #e0e0e0;
+	border-radius: 16px;
 	font-size: 14px;
 	resize: vertical;
-	margin-bottom: 8px;
+	margin-bottom: 12px;
+	font-family: inherit;
 
 	&:focus {
 		outline: none;
 		border-color: #1a1a1a;
 	}
+
+	@media (min-width: 768px) {
+		padding: 16px;
+		font-size: 15px;
+		border-radius: 18px;
+	}
 `
 
 const SubmitReviewButton = styled.button`
-	padding: 8px 16px;
+	padding: 10px 20px;
 	background: #1a1a1a;
 	color: white;
 	border: none;
-	border-radius: 20px;
-	font-size: 13px;
+	border-radius: 30px;
+	font-size: 14px;
+	font-weight: 500;
 	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	transition: all 0.2s;
+
+	&:hover {
+		background: #333;
+		transform: translateY(-1px);
+	}
+
+	@media (min-width: 768px) {
+		padding: 12px 24px;
+		font-size: 15px;
+	}
+`
+
+const ReviewText = styled.div`
+	margin-top: 16px;
+	padding: 14px;
+	background: #f9f9f9;
+	border-radius: 16px;
+	font-size: 14px;
+	color: #555;
+	display: flex;
+	gap: 10px;
+
+	@media (min-width: 768px) {
+		padding: 16px;
+		font-size: 15px;
+		border-radius: 18px;
+	}
 `
 
 const AddBookingButton = styled(Link)`
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 8px;
+	gap: 12px;
 	width: 100%;
-	padding: 14px;
+	max-width: 350px;
+	margin: 40px auto 0;
+	padding: 16px 28px;
 	background: #1a1a1a;
 	color: white;
 	text-decoration: none;
-	border-radius: 12px;
-	font-weight: 500;
-	margin-top: 16px;
+	border-radius: 60px;
+	font-weight: 600;
+	font-size: 16px;
+	transition: all 0.2s;
+
+	&:hover {
+		background: #333;
+		transform: translateY(-2px);
+	}
+
+	@media (min-width: 768px) {
+		max-width: 400px;
+		padding: 18px 32px;
+		font-size: 18px;
+		gap: 14px;
+	}
 `
 
 const EmptyState = styled.div`
 	text-align: center;
-	padding: 40px;
+	padding: 60px 20px;
+	background: white;
+	border-radius: 24px;
 	color: #999;
+
+	svg {
+		margin-bottom: 16px;
+		opacity: 0.5;
+	}
+
+	p {
+		font-size: 16px;
+	}
+
+	@media (min-width: 768px) {
+		padding: 80px;
+		border-radius: 32px;
+
+		p {
+			font-size: 18px;
+		}
+	}
 `
 
 const Dashboard = () => {
@@ -247,34 +471,39 @@ const Dashboard = () => {
 	const user = auth.currentUser
 
 	useEffect(() => {
-		if (user) {
-			loadBookings()
-			loadUserData()
+		if (!user) return
+
+		// Загружаем данные пользователя один раз
+		const loadUserData = async () => {
+			try {
+				const userDoc = await getDoc(doc(db, 'users', user.uid))
+				if (userDoc.exists()) {
+					setUserData(userDoc.data())
+				}
+			} catch (error) {
+				console.error('Ошибка загрузки данных пользователя:', error)
+			}
 		}
+		loadUserData()
+
+		// РЕАЛЬНОЕ ВРЕМЯ: подписываемся на обновления заявок
+		const q = query(collection(db, 'bookings'), where('userId', '==', user.uid))
+		const unsubscribe = onSnapshot(q, (snapshot) => {
+			const bookingsData = snapshot.docs.map(doc => ({
+				id: doc.id,
+				...doc.data(),
+			}))
+			console.log('Заявки обновлены в реальном времени:', bookingsData.length)
+			setBookings(bookingsData)
+		}, (error) => {
+			console.error('Ошибка при получении заявок:', error)
+		})
+
+		// Отписываемся при размонтировании компонента
+		return () => unsubscribe()
 	}, [user])
 
-	const loadUserData = async () => {
-		try {
-			const userDoc = await getDoc(doc(db, 'users', user.uid))
-			if (userDoc.exists()) {
-				setUserData(userDoc.data())
-			}
-		} catch (error) {
-			console.error('Ошибка загрузки данных пользователя:', error)
-		}
-	}
-
-	const loadBookings = async () => {
-		const q = query(collection(db, 'bookings'), where('userId', '==', user.uid))
-		const querySnapshot = await getDocs(q)
-		const bookingsData = querySnapshot.docs.map(doc => ({
-			id: doc.id,
-			...doc.data(),
-		}))
-		setBookings(bookingsData)
-	}
-
-	const handleSubmitReview = async bookingId => {
+	const handleSubmitReview = async (bookingId) => {
 		const reviewText = reviews[bookingId]
 		if (!reviewText || !reviewText.trim()) return
 
@@ -284,7 +513,6 @@ const Dashboard = () => {
 			reviewDate: new Date().toISOString(),
 		})
 
-		await loadBookings()
 		setReviews(prev => ({ ...prev, [bookingId]: '' }))
 	}
 
@@ -307,35 +535,37 @@ const Dashboard = () => {
 			<Header>
 				<HeaderTitle>Личный кабинет</HeaderTitle>
 				<LogoutButton onClick={handleLogout}>
-					<LogOut size={20} />
+					<LogOut size={18} />
+					Выйти
 				</LogoutButton>
 			</Header>
 
 			<Content>
-				<Slider />
-
 				<Section>
-					<SectionTitle>Мой профиль</SectionTitle>
+					<SectionTitle>
+						Мой профиль
+						<Badge>{userData?.login || 'Пользователь'}</Badge>
+					</SectionTitle>
 					<ProfileCard>
 						<ProfileHeader>
 							<ProfileAvatar>
-								<User size={28} />
+								<User size={40} />
 							</ProfileAvatar>
 							<ProfileInfo>
 								<ProfileName>{userData?.fullName || user?.displayName || 'Пользователь'}</ProfileName>
-								<ProfileDetail>
-									<Mail size={14} />
+								<ProfileEmail>
+									<Mail size={16} />
 									{user?.email}
-								</ProfileDetail>
+								</ProfileEmail>
 							</ProfileInfo>
 						</ProfileHeader>
 						<ProfileDetails>
 							<ProfileDetail>
-								<User size={14} />
+								<User size={18} />
 								Логин: {userData?.login || 'Не указан'}
 							</ProfileDetail>
 							<ProfileDetail>
-								<Phone size={14} />
+								<Phone size={18} />
 								Телефон: {userData?.phone || 'Не указан'}
 							</ProfileDetail>
 						</ProfileDetails>
@@ -343,61 +573,75 @@ const Dashboard = () => {
 				</Section>
 
 				<Section>
-					<SectionTitle>Мои заявки ({bookings.length})</SectionTitle>
+					<SectionTitle>
+						Мои заявки
+						<Badge>{bookings.length}</Badge>
+					</SectionTitle>
+
 					{bookings.length === 0 ? (
-						<EmptyState>У вас пока нет заявок</EmptyState>
+						<EmptyState>
+							<Calendar size={48} />
+							<p>У вас пока нет заявок</p>
+						</EmptyState>
 					) : (
-						bookings.map(booking => (
-							<BookingCard key={booking.id}>
-								<BookingInfo>
-									<VenueName>{booking.venue}</VenueName>
-									<Status status={booking.status}>{booking.status}</Status>
-								</BookingInfo>
-								<BookingDetail>
-									<Calendar size={14} />
-									Дата: {formatDate(booking.dateOriginal || booking.date)}
-								</BookingDetail>
-								<BookingDetail>
-									<CreditCard size={14} />
-									Оплата: {booking.paymentMethod}
-								</BookingDetail>
-								<BookingDetail>
-									<Clock size={14} />
-									Создана: {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : 'Неизвестно'}
-								</BookingDetail>
+						<BookingsGrid>
+							{bookings.map(booking => (
+								<BookingCard key={booking.id}>
+									<BookingHeader>
+										<VenueName>{booking.venue}</VenueName>
+										<Status status={booking.status}>{booking.status}</Status>
+									</BookingHeader>
 
-								{booking.status === 'Банкет завершен' && !booking.review && (
-									<ReviewSection>
-										<ReviewText
-											placeholder='Оставьте отзыв о банкете...'
-											value={reviews[booking.id] || ''}
-											onChange={e =>
-												setReviews(prev => ({
-													...prev,
-													[booking.id]: e.target.value,
-												}))
-											}
-										/>
-										<SubmitReviewButton onClick={() => handleSubmitReview(booking.id)}>
-											<MessageSquare size={14} style={{ marginRight: 6 }} />
-											Оставить отзыв
-										</SubmitReviewButton>
-									</ReviewSection>
-								)}
+									<BookingDetails>
+										<BookingDetail>
+											<Calendar size={16} />
+											Дата: {formatDate(booking.dateOriginal || booking.date)}
+										</BookingDetail>
+										<BookingDetail>
+											<CreditCard size={16} />
+											Оплата: {booking.paymentMethod}
+										</BookingDetail>
+										<BookingDetail>
+											<Clock size={16} />
+											Создана: {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : 'Неизвестно'}
+										</BookingDetail>
+									</BookingDetails>
 
-								{booking.review && (
-									<ReviewSection>
-										<Star size={14} style={{ color: '#ffc107', display: 'inline', marginRight: 6 }} />
-										<span style={{ fontSize: 13, color: '#666' }}>Ваш отзыв: {booking.review}</span>
-									</ReviewSection>
-								)}
-							</BookingCard>
-						))
+									{booking.status === 'Банкет завершен' && !booking.review && (
+										<ReviewSection>
+											<ReviewTextarea
+												placeholder='Оставьте отзыв о банкете...'
+												value={reviews[booking.id] || ''}
+												onChange={e =>
+													setReviews(prev => ({
+														...prev,
+														[booking.id]: e.target.value,
+													}))
+												}
+											/>
+											<SubmitReviewButton onClick={() => handleSubmitReview(booking.id)}>
+												<MessageSquare size={16} />
+												Оставить отзыв
+											</SubmitReviewButton>
+										</ReviewSection>
+									)}
+
+									{booking.review && (
+										<ReviewSection>
+											<ReviewText>
+												<Star size={16} style={{ color: '#ffc107', flexShrink: 0 }} />
+												<span>Ваш отзыв: {booking.review}</span>
+											</ReviewText>
+										</ReviewSection>
+									)}
+								</BookingCard>
+							))}
+						</BookingsGrid>
 					)}
 
 					<AddBookingButton to='/booking'>
-						<Calendar size={18} />
-						Новая заявка
+						<Plus size={20} />
+						Создать новую заявку
 						<ChevronRight size={18} />
 					</AddBookingButton>
 				</Section>

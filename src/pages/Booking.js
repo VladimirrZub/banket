@@ -3,11 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { auth, db } from '../firebase'
 import { collection, addDoc } from 'firebase/firestore'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import {
 	Calendar as CalendarIcon,
 	CreditCard,
 	MapPin,
 	ChevronLeft,
+	Clock,
+	CheckCircle,
 } from 'lucide-react'
 
 const Container = styled.div`
@@ -17,11 +21,19 @@ const Container = styled.div`
 
 const Header = styled.div`
 	background: white;
-	padding: 20px;
+	padding: 20px 5%;
 	border-bottom: 1px solid #e0e0e0;
 	display: flex;
 	align-items: center;
 	gap: 16px;
+	position: sticky;
+	top: 0;
+	z-index: 10;
+
+	@media (min-width: 768px) {
+		padding: 24px 8%;
+		gap: 24px;
+	}
 `
 
 const BackButton = styled.button`
@@ -32,153 +44,280 @@ const BackButton = styled.button`
 	padding: 8px;
 	display: flex;
 	align-items: center;
+	transition: opacity 0.2s;
+
+	&:hover {
+		opacity: 0.7;
+	}
+
+	@media (min-width: 768px) {
+		padding: 10px;
+
+		svg {
+			width: 28px;
+			height: 28px;
+		}
+	}
 `
 
 const HeaderTitle = styled.h1`
 	font-size: 24px;
-	font-weight: 600;
+	font-weight: 700;
 	color: #1a1a1a;
+
+	@media (min-width: 768px) {
+		font-size: 32px;
+	}
 `
 
 const Content = styled.div`
-	padding: 20px;
-	max-width: 390px;
+	max-width: 900px;
 	margin: 0 auto;
+	padding: 30px 5% 60px;
+
+	@media (min-width: 768px) {
+		padding: 48px 8% 80px;
+	}
 `
 
 const Card = styled.div`
 	background: white;
-	border-radius: 24px;
-	padding: 24px;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	border-radius: 28px;
+	padding: 32px 28px;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+
+	@media (min-width: 768px) {
+		padding: 48px 48px;
+		border-radius: 36px;
+	}
+`
+
+const FormTitle = styled.h2`
+	font-size: 22px;
+	font-weight: 700;
+	color: #1a1a1a;
+	margin-bottom: 8px;
+
+	@media (min-width: 768px) {
+		font-size: 28px;
+		margin-bottom: 12px;
+	}
+`
+
+const FormSubtitle = styled.p`
+	font-size: 14px;
+	color: #666;
+	margin-bottom: 32px;
+
+	@media (min-width: 768px) {
+		font-size: 16px;
+		margin-bottom: 40px;
+	}
 `
 
 const InputGroup = styled.div`
-	margin-bottom: 24px;
+	margin-bottom: 28px;
+
+	@media (min-width: 768px) {
+		margin-bottom: 32px;
+	}
 `
 
 const Label = styled.label`
-	display: block;
-	font-size: 14px;
-	font-weight: 500;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 15px;
+	font-weight: 600;
 	color: #333;
-	margin-bottom: 8px;
+	margin-bottom: 12px;
+
+	@media (min-width: 768px) {
+		font-size: 16px;
+		margin-bottom: 14px;
+		gap: 10px;
+	}
 `
 
 const Select = styled.select`
 	width: 100%;
-	padding: 14px 16px;
-	border: 1px solid #e0e0e0;
-	border-radius: 12px;
+	padding: 16px 18px;
+	border: 1.5px solid #e0e0e0;
+	border-radius: 18px;
 	font-size: 16px;
 	background: white;
 	cursor: pointer;
+	transition: all 0.2s;
 
 	&:focus {
 		outline: none;
 		border-color: #1a1a1a;
 	}
-`
 
-const Input = styled.input`
-	width: 100%;
-	padding: 14px 16px;
-	border: 1px solid #e0e0e0;
-	border-radius: 12px;
-	font-size: 16px;
-
-	&:focus {
-		outline: none;
-		border-color: #1a1a1a;
+	@media (min-width: 768px) {
+		padding: 18px 20px;
+		font-size: 17px;
+		border-radius: 20px;
 	}
 `
 
-const Button = styled.button`
+const StyledDatePicker = styled(DatePicker)`
 	width: 100%;
-	padding: 14px;
-	background: #1a1a1a;
-	color: white;
-	border: none;
-	border-radius: 12px;
+	padding: 16px 18px;
+	border: 1.5px solid #e0e0e0;
+	border-radius: 18px;
 	font-size: 16px;
-	font-weight: 500;
+	transition: all 0.2s;
 	cursor: pointer;
-	transition: background 0.2s;
 
-	&:hover {
-		background: #333;
+	&:focus {
+		outline: none;
+		border-color: #1a1a1a;
+	}
+
+	@media (min-width: 768px) {
+		padding: 18px 20px;
+		font-size: 17px;
+		border-radius: 20px;
+	}
+`
+
+const Hint = styled.p`
+	font-size: 12px;
+	color: #999;
+	margin-top: 8px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+
+	@media (min-width: 768px) {
+		font-size: 13px;
+		margin-top: 10px;
 	}
 `
 
 const ErrorMessage = styled.div`
 	color: #e53935;
-	font-size: 12px;
-	margin-top: 6px;
+	font-size: 13px;
+	margin-top: 8px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+
+	@media (min-width: 768px) {
+		font-size: 14px;
+		margin-top: 10px;
+	}
 `
 
 const SuccessMessage = styled.div`
 	color: #4caf50;
 	font-size: 14px;
 	text-align: center;
+	margin-top: 24px;
+	padding: 16px;
+	background: #e8f5e9;
+	border-radius: 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+
+	@media (min-width: 768px) {
+		font-size: 16px;
+		margin-top: 32px;
+		padding: 20px;
+		border-radius: 20px;
+	}
+`
+
+const Button = styled.button`
+	width: 100%;
+	padding: 16px;
+	background: #1a1a1a;
+	color: white;
+	border: none;
+	border-radius: 60px;
+	font-size: 17px;
+	font-weight: 600;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	transition: all 0.2s;
 	margin-top: 16px;
+
+	&:hover {
+		background: #333;
+		transform: translateY(-1px);
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		transform: none;
+	}
+
+	@media (min-width: 768px) {
+		padding: 18px;
+		font-size: 18px;
+		gap: 12px;
+		margin-top: 24px;
+	}
 `
 
 const venues = [
-	{ id: 1, name: 'Зал "Торжественный"', type: 'Зал' },
-	{ id: 2, name: 'Ресторан "Изумруд"', type: 'Ресторан' },
-	{ id: 3, name: 'Летняя веранда "Сакура"', type: 'Летняя веранда' },
-	{ id: 4, name: 'Закрытая веранда "Уют"', type: 'Закрытая веранда' },
-	{ id: 5, name: 'Зал "Мраморный"', type: 'Зал' },
+	{ id: 1, name: 'Зал "Торжественный"', type: 'Банкетный зал', capacity: 'до 150 чел' },
+	{ id: 2, name: 'Ресторан "Изумруд"', type: 'Ресторан', capacity: 'до 80 чел' },
+	{ id: 3, name: 'Летняя веранда "Сакура"', type: 'Летняя веранда', capacity: 'до 60 чел' },
+	{ id: 4, name: 'Закрытая веранда "Уют"', type: 'Закрытая веранда', capacity: 'до 40 чел' },
+	{ id: 5, name: 'Зал "Мраморный"', type: 'Банкетный зал', capacity: 'до 200 чел' },
 ]
 
 const paymentMethods = [
-	'Наличными',
-	'Банковской картой',
-	'Безналичный расчет',
-	'Предоплата 50%',
+	{ id: 'cash', name: 'Наличными', icon: '💰' },
+	{ id: 'card', name: 'Банковской картой', icon: '💳' },
+	{ id: 'transfer', name: 'Безналичный расчет', icon: '🏦' },
+	{ id: 'prepay', name: 'Предоплата 50%', icon: '📝' },
 ]
 
 const Booking = () => {
 	const [formData, setFormData] = useState({
 		venue: '',
-		date: '',
+		date: null,
 		paymentMethod: '',
 	})
 	const [error, setError] = useState('')
 	const [success, setSuccess] = useState('')
+	const [loading, setLoading] = useState(false)
 	const navigate = useNavigate()
 
-	const validateDate = dateStr => {
-		const regex = /^\d{2}\.\d{2}\.\d{4}$/
-		if (!regex.test(dateStr)) return false
-
-		const [day, month, year] = dateStr.split('.')
-		const date = new Date(year, month - 1, day)
-		const today = new Date()
-		today.setHours(0, 0, 0, 0)
-
-		return date >= today
+	const formatDateForDB = (date) => {
+		if (!date) return ''
+		const day = String(date.getDate()).padStart(2, '0')
+		const month = String(date.getMonth() + 1).padStart(2, '0')
+		const year = date.getFullYear()
+		return `${year}-${month}-${day}`
 	}
 
-	const formatDateForDB = dateStr => {
-		const [day, month, year] = dateStr.split('.')
-		return `${year}-${month}-${day}`
+	const formatDateForDisplay = (date) => {
+		if (!date) return ''
+		const day = String(date.getDate()).padStart(2, '0')
+		const month = String(date.getMonth() + 1).padStart(2, '0')
+		const year = date.getFullYear()
+		return `${day}.${month}.${year}`
 	}
 
 	const handleSubmit = async e => {
 		e.preventDefault()
 		setError('')
 		setSuccess('')
+		setLoading(true)
 
 		if (!formData.venue || !formData.date || !formData.paymentMethod) {
 			setError('Заполните все поля')
-			return
-		}
-
-		if (!validateDate(formData.date)) {
-			setError(
-				'Укажите корректную дату в формате ДД.ММ.ГГГГ (не ранее сегодняшнего дня)',
-			)
+			setLoading(false)
 			return
 		}
 
@@ -194,16 +333,19 @@ const Booking = () => {
 				userName: user.displayName,
 				venue: formData.venue,
 				date: formatDateForDB(formData.date),
-				dateOriginal: formData.date,
+				dateOriginal: formatDateForDisplay(formData.date),
 				paymentMethod: formData.paymentMethod,
 				status: 'Новая',
 				createdAt: new Date().toISOString(),
 			})
 
-			setSuccess('Заявка успешно создана!')
-			setTimeout(() => navigate('/dashboard'), 1500)
+			setSuccess('Заявка успешно создана! Перенаправление...')
+			setTimeout(() => navigate('/dashboard'), 2000)
 		} catch (err) {
-			setError('Ошибка при создании заявки')
+			console.error('Ошибка:', err)
+			setError('Ошибка при создании заявки. Попробуйте позже.')
+		} finally {
+			setLoading(false)
 		}
 	}
 
@@ -218,13 +360,15 @@ const Booking = () => {
 
 			<Content>
 				<Card>
+					<FormTitle>Забронировать помещение</FormTitle>
+					<FormSubtitle>
+						Заполните форму и мы свяжемся с вами для подтверждения
+					</FormSubtitle>
+
 					<form onSubmit={handleSubmit}>
 						<InputGroup>
 							<Label>
-								<MapPin
-									size={14}
-									style={{ display: 'inline', marginRight: 6 }}
-								/>
+								<MapPin size={18} />
 								Выберите помещение
 							</Label>
 							<Select
@@ -237,7 +381,7 @@ const Booking = () => {
 								<option value=''>Выберите из списка</option>
 								{venues.map(venue => (
 									<option key={venue.id} value={venue.name}>
-										{venue.type} - {venue.name}
+										{venue.type} - {venue.name} ({venue.capacity})
 									</option>
 								))}
 							</Select>
@@ -245,30 +389,27 @@ const Booking = () => {
 
 						<InputGroup>
 							<Label>
-								<CalendarIcon
-									size={14}
-									style={{ display: 'inline', marginRight: 6 }}
-								/>
+								<CalendarIcon size={18} />
 								Дата начала банкета
 							</Label>
-							<Input
-								type='text'
-								placeholder='ДД.ММ.ГГГГ'
-								value={formData.date}
-								onChange={e =>
-									setFormData({ ...formData, date: e.target.value })
-								}
+							<StyledDatePicker
+								selected={formData.date}
+								onChange={(date) => setFormData({ ...formData, date })}
+								dateFormat="dd.MM.yyyy"
+								placeholderText="Выберите дату"
+								minDate={new Date()}
+								locale="ru"
 								required
 							/>
-							<ErrorMessage>Формат: 25.12.2024</ErrorMessage>
+							<Hint>
+								<Clock size={12} />
+								Выберите удобную дату из календаря
+							</Hint>
 						</InputGroup>
 
 						<InputGroup>
 							<Label>
-								<CreditCard
-									size={14}
-									style={{ display: 'inline', marginRight: 6 }}
-								/>
+								<CreditCard size={18} />
 								Способ оплаты
 							</Label>
 							<Select
@@ -280,19 +421,30 @@ const Booking = () => {
 							>
 								<option value=''>Выберите способ оплаты</option>
 								{paymentMethods.map(method => (
-									<option key={method} value={method}>
-										{method}
+									<option key={method.id} value={method.name}>
+										{method.icon} {method.name}
 									</option>
 								))}
 							</Select>
 						</InputGroup>
 
 						{error && (
-							<ErrorMessage style={{ marginBottom: 16 }}>{error}</ErrorMessage>
+							<ErrorMessage>
+								⚠️ {error}
+							</ErrorMessage>
 						)}
-						{success && <SuccessMessage>{success}</SuccessMessage>}
 
-						<Button type='submit'>Отправить заявку</Button>
+						{success && (
+							<SuccessMessage>
+								<CheckCircle size={20} />
+								{success}
+							</SuccessMessage>
+						)}
+
+						<Button type='submit' disabled={loading}>
+							{loading ? 'Отправка...' : 'Отправить заявку'}
+							{!loading && <span>→</span>}
+						</Button>
 					</form>
 				</Card>
 			</Content>
