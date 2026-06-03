@@ -4,33 +4,63 @@ import styled from 'styled-components'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import { auth, db } from '../firebase'
-import { LogIn, AlertCircle } from 'lucide-react'
-import Slider from '../components/Slider'
+import { LogIn, AlertCircle, ArrowLeft } from 'lucide-react'
 
 const Container = styled.div`
 	min-height: 100vh;
 	background-color: #f5f5f5;
 `
 
-const Content = styled.div`
+const Header = styled.div`
 	padding: 20px;
-	max-width: 390px;
+`
+
+const BackButton = styled.button`
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: #1a1a1a;
+	padding: 8px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 14px;
+`
+
+
+const Content = styled.div`
+	padding: 20px 5%;
+	max-width: 500px;
 	margin: 0 auto;
+	width: 100%;
+
+	@media (min-width: 768px) {
+		padding: 40px 5%;
+	}
 `
 
 const Card = styled.div`
 	background: white;
 	border-radius: 24px;
-	padding: 28px 20px;
+	padding: 32px 24px;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+	@media (min-width: 768px) {
+		padding: 48px 40px;
+		border-radius: 32px;
+	}
 `
 
 const Title = styled.h1`
-	font-size: 28px;
+	font-size: 32px;
 	font-weight: 600;
-	margin-bottom: 8px;
+	margin-bottom: 12px;
 	color: #1a1a1a;
 	letter-spacing: -0.5px;
+
+	@media (min-width: 768px) {
+		font-size: 40px;
+	}
 `
 
 const Subtitle = styled.p`
@@ -140,7 +170,6 @@ const Login = () => {
 		setLoading(true)
 
 		if (loginInput === 'Admin26' && password === 'Demo20') {
-			console.log('Администратор авторизован')
 			localStorage.setItem('isAdmin', 'true')
 			sessionStorage.setItem('isAdmin', 'true')
 			localStorage.setItem('adminLogin', 'true')
@@ -155,7 +184,6 @@ const Login = () => {
 			sessionStorage.setItem('adminUser', JSON.stringify(adminUser))
 
 			setLoading(false)
-			console.log('Перенаправление в админку...')
 			navigate('/admin')
 			return
 		}
@@ -174,11 +202,7 @@ const Login = () => {
 				}
 			}
 
-			const userCredential = await signInWithEmailAndPassword(
-				auth,
-				email,
-				password,
-			)
+			await signInWithEmailAndPassword(auth, email, password)
 
 			localStorage.removeItem('isAdmin')
 			localStorage.removeItem('adminLogin')
@@ -197,8 +221,13 @@ const Login = () => {
 
 	return (
 		<Container>
+			<Header>
+				<BackButton onClick={() => navigate('/')}>
+					<ArrowLeft size={18} />
+					На главную
+				</BackButton>
+			</Header>
 			<Content>
-				<Slider />
 				<Card>
 					<Title>Вход</Title>
 					<Subtitle>Войдите в свой аккаунт</Subtitle>

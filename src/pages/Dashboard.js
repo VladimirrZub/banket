@@ -10,6 +10,7 @@ import {
 	getDocs,
 	updateDoc,
 	doc,
+	getDoc,
 } from 'firebase/firestore'
 import {
 	LogOut,
@@ -17,6 +18,12 @@ import {
 	MessageSquare,
 	Star,
 	ChevronRight,
+	User,
+	Phone,
+	Mail,
+	Clock,
+	MapPin,
+	CreditCard,
 } from 'lucide-react'
 import Slider from '../components/Slider'
 
@@ -64,6 +71,59 @@ const SectionTitle = styled.h2`
 	font-weight: 600;
 	color: #333;
 	margin-bottom: 16px;
+`
+
+const ProfileCard = styled.div`
+	background: white;
+	border-radius: 16px;
+	padding: 20px;
+	margin-bottom: 24px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+`
+
+const ProfileHeader = styled.div`
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	margin-bottom: 16px;
+`
+
+const ProfileAvatar = styled.div`
+	width: 60px;
+	height: 60px;
+	border-radius: 50%;
+	background: #1a1a1a;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+`
+
+const ProfileInfo = styled.div`
+	flex: 1;
+`
+
+const ProfileName = styled.h3`
+	font-size: 18px;
+	font-weight: 600;
+	color: #1a1a1a;
+`
+
+const ProfileDetails = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px solid #f0f0f0;
+`
+
+const ProfileDetail = styled.div`
+	font-size: 14px;
+	color: #666;
+	display: flex;
+	align-items: center;
+	gap: 8px;
 `
 
 const BookingCard = styled.div`
@@ -122,6 +182,9 @@ const BookingDetail = styled.p`
 	font-size: 13px;
 	color: #666;
 	margin: 6px 0;
+	display: flex;
+	align-items: center;
+	gap: 6px;
 `
 
 const ReviewSection = styled.div`
@@ -179,14 +242,27 @@ const EmptyState = styled.div`
 const Dashboard = () => {
 	const [bookings, setBookings] = useState([])
 	const [reviews, setReviews] = useState({})
+	const [userData, setUserData] = useState(null)
 	const navigate = useNavigate()
 	const user = auth.currentUser
 
 	useEffect(() => {
 		if (user) {
 			loadBookings()
+			loadUserData()
 		}
 	}, [user])
+
+	const loadUserData = async () => {
+		try {
+			const userDoc = await getDoc(doc(db, 'users', user.uid))
+			if (userDoc.exists()) {
+				setUserData(userDoc.data())
+			}
+		} catch (error) {
+			console.error('Ошибка загрузки данных пользователя:', error)
+		}
+	}
 
 	const loadBookings = async () => {
 		const q = query(collection(db, 'bookings'), where('userId', '==', user.uid))
@@ -217,6 +293,15 @@ const Dashboard = () => {
 		navigate('/login')
 	}
 
+	const formatDate = (dateStr) => {
+		if (!dateStr) return 'Не указана'
+		if (dateStr.includes('-')) {
+			const [year, month, day] = dateStr.split('-')
+			return `${day}.${month}.${year}`
+		}
+		return dateStr
+	}
+
 	return (
 		<Container>
 			<Header>
@@ -230,7 +315,35 @@ const Dashboard = () => {
 				<Slider />
 
 				<Section>
-					<SectionTitle>Мои заявки</SectionTitle>
+					<SectionTitle>Мой профиль</SectionTitle>
+					<ProfileCard>
+						<ProfileHeader>
+							<ProfileAvatar>
+								<User size={28} />
+							</ProfileAvatar>
+							<ProfileInfo>
+								<ProfileName>{userData?.fullName || user?.displayName || 'Пользователь'}</ProfileName>
+								<ProfileDetail>
+									<Mail size={14} />
+									{user?.email}
+								</ProfileDetail>
+							</ProfileInfo>
+						</ProfileHeader>
+						<ProfileDetails>
+							<ProfileDetail>
+								<User size={14} />
+								Логин: {userData?.login || 'Не указан'}
+							</ProfileDetail>
+							<ProfileDetail>
+								<Phone size={14} />
+								Телефон: {userData?.phone || 'Не указан'}
+							</ProfileDetail>
+						</ProfileDetails>
+					</ProfileCard>
+				</Section>
+
+				<Section>
+					<SectionTitle>Мои заявки ({bookings.length})</SectionTitle>
 					{bookings.length === 0 ? (
 						<EmptyState>У вас пока нет заявок</EmptyState>
 					) : (
@@ -241,13 +354,17 @@ const Dashboard = () => {
 									<Status status={booking.status}>{booking.status}</Status>
 								</BookingInfo>
 								<BookingDetail>
-									<Calendar
-										size={14}
-										style={{ display: 'inline', marginRight: 6 }}
-									/>
-									Дата: {booking.date}
+									<Calendar size={14} />
+									Дата: {formatDate(booking.dateOriginal || booking.date)}
 								</BookingDetail>
-								<BookingDetail>Оплата: {booking.paymentMethod}</BookingDetail>
+								<BookingDetail>
+									<CreditCard size={14} />
+									Оплата: {booking.paymentMethod}
+								</BookingDetail>
+								<BookingDetail>
+									<Clock size={14} />
+									Создана: {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : 'Неизвестно'}
+								</BookingDetail>
 
 								{booking.status === 'Банкет завершен' && !booking.review && (
 									<ReviewSection>
@@ -261,9 +378,7 @@ const Dashboard = () => {
 												}))
 											}
 										/>
-										<SubmitReviewButton
-											onClick={() => handleSubmitReview(booking.id)}
-										>
+										<SubmitReviewButton onClick={() => handleSubmitReview(booking.id)}>
 											<MessageSquare size={14} style={{ marginRight: 6 }} />
 											Оставить отзыв
 										</SubmitReviewButton>
@@ -272,17 +387,8 @@ const Dashboard = () => {
 
 								{booking.review && (
 									<ReviewSection>
-										<Star
-											size={14}
-											style={{
-												color: '#ffc107',
-												display: 'inline',
-												marginRight: 6,
-											}}
-										/>
-										<span style={{ fontSize: 13, color: '#666' }}>
-											Ваш отзыв: {booking.review}
-										</span>
+										<Star size={14} style={{ color: '#ffc107', display: 'inline', marginRight: 6 }} />
+										<span style={{ fontSize: 13, color: '#666' }}>Ваш отзыв: {booking.review}</span>
 									</ReviewSection>
 								)}
 							</BookingCard>

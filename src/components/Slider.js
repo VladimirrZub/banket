@@ -7,9 +7,19 @@ const SliderContainer = styled.div`
 	width: 100%;
 	height: 280px;
 	overflow: hidden;
-	border-radius: 16px;
-	margin-bottom: 24px;
+	border-radius: 20px;
+	margin-bottom: 32px;
 	background-color: #e0e0e0;
+
+	@media (min-width: 768px) {
+		height: 450px;
+		border-radius: 28px;
+		margin-bottom: 48px;
+	}
+
+	@media (min-width: 1024px) {
+		height: 550px;
+	}
 `
 
 const SlidesWrapper = styled.div`
@@ -38,24 +48,49 @@ const Arrow = styled.button`
 	position: absolute;
 	top: 50%;
 	transform: translateY(-50%);
-	${props => (props.direction === 'left' ? 'left: 12px;' : 'right: 12px;')}
 	background: rgba(0, 0, 0, 0.5);
 	border: none;
 	border-radius: 50%;
-	width: 40px;
-	height: 40px;
+	width: 36px;
+	height: 36px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
 	color: white;
 	transition: all 0.2s;
-	z-index: 2;
+	z-index: 10;
 	backdrop-filter: blur(4px);
+
+	&:first-of-type {
+		left: 12px;
+	}
+
+	&:last-of-type {
+		right: 12px;
+	}
 
 	&:hover {
 		background: rgba(0, 0, 0, 0.7);
 		transform: translateY(-50%) scale(1.05);
+	}
+
+	@media (min-width: 768px) {
+		width: 48px;
+		height: 48px;
+
+		&:first-of-type {
+			left: 20px;
+		}
+
+		&:last-of-type {
+			right: 20px;
+		}
+
+		svg {
+			width: 24px;
+			height: 24px;
+		}
 	}
 `
 
@@ -68,6 +103,11 @@ const DotsContainer = styled.div`
 	justify-content: center;
 	gap: 10px;
 	z-index: 2;
+
+	@media (min-width: 768px) {
+		bottom: 24px;
+		gap: 14px;
+	}
 `
 
 const Dot = styled.button`
@@ -84,6 +124,11 @@ const Dot = styled.button`
 	&:hover {
 		transform: scale(1.2);
 	}
+
+	@media (min-width: 768px) {
+		width: 10px;
+		height: 10px;
+	}
 `
 
 const images = [
@@ -99,29 +144,26 @@ const Slider = () => {
 	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
-		const checkImages = async () => {
+		const preloadImages = async () => {
 			const validImages = []
 			for (const imgSrc of images) {
 				try {
-					const response = await fetch(imgSrc, { method: 'HEAD' })
-					if (response.ok) {
-						validImages.push(imgSrc)
-					} else {
-						validImages.push(
-							'https://images.pexels.com/photos/260922/pexels-photo-260922.jpeg?w=940&h=650&fit=crop',
-						)
-					}
+					await new Promise((resolve, reject) => {
+						const img = new Image()
+						img.onload = resolve
+						img.onerror = reject
+						img.src = imgSrc
+					})
+					validImages.push(imgSrc)
 				} catch {
-					validImages.push(
-						'https://images.pexels.com/photos/260922/pexels-photo-260922.jpeg?w=940&h=650&fit=crop',
-					)
+					validImages.push('https://picsum.photos/id/104/1200/650')
 				}
 			}
 			setLoadedImages(validImages)
 			setLoading(false)
 		}
 
-		checkImages()
+		preloadImages()
 	}, [])
 
 	useEffect(() => {
@@ -155,7 +197,7 @@ const Slider = () => {
 						color: '#666',
 					}}
 				>
-					Загрузка...
+					Загрузка изображений...
 				</div>
 			</SliderContainer>
 		)

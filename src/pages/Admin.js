@@ -9,6 +9,7 @@ import {
 	updateDoc,
 	doc,
 	onSnapshot,
+	deleteDoc,
 } from 'firebase/firestore'
 import {
 	LogOut,
@@ -19,6 +20,14 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	RefreshCw,
+	User,
+	Calendar,
+	CreditCard,
+	MapPin,
+	Phone,
+	Mail,
+	Trash2,
+	Eye,
 } from 'lucide-react'
 
 const Container = styled.div`
@@ -101,7 +110,7 @@ const FilterButton = styled.button`
 
 const StatsBar = styled.div`
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
+	grid-template-columns: repeat(4, 1fr);
 	gap: 12px;
 	margin-bottom: 20px;
 `
@@ -112,6 +121,12 @@ const StatCard = styled.div`
 	padding: 16px;
 	text-align: center;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	cursor: pointer;
+	transition: transform 0.2s;
+
+	&:hover {
+		transform: translateY(-2px);
+	}
 `
 
 const StatNumber = styled.div`
@@ -154,10 +169,33 @@ const BookingHeader = styled.div`
 	gap: 10px;
 `
 
+const UserInfo = styled.div`
+	display: flex;
+	align-items: center;
+	gap: 10px;
+`
+
+const UserAvatar = styled.div`
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: #1a1a1a;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+`
+
 const UserName = styled.h3`
 	font-size: 16px;
 	font-weight: 600;
 	color: #1a1a1a;
+`
+
+const UserDetails = styled.div`
+	font-size: 12px;
+	color: #666;
+	margin-top: 2px;
 `
 
 const StatusBadge = styled.span`
@@ -204,6 +242,9 @@ const BookingDetails = styled.div`
 const DetailItem = styled.div`
 	font-size: 13px;
 	color: #555;
+	display: flex;
+	align-items: center;
+	gap: 6px;
 `
 
 const DetailLabel = styled.span`
@@ -216,6 +257,7 @@ const ActionButtons = styled.div`
 	display: flex;
 	gap: 12px;
 	margin-top: 16px;
+	flex-wrap: wrap;
 `
 
 const ActionButton = styled.button`
@@ -242,6 +284,11 @@ const ApproveButton = styled(ActionButton)`
 
 const CompleteButton = styled(ActionButton)`
 	background: #2196f3;
+	color: white;
+`
+
+const DeleteButton = styled(ActionButton)`
+	background: #f44336;
 	color: white;
 `
 
@@ -296,13 +343,62 @@ const EmptyState = styled.div`
 	}
 `
 
+const Modal = styled.div`
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+`
+
+const ModalContent = styled.div`
+	background: white;
+	border-radius: 24px;
+	padding: 24px;
+	max-width: 400px;
+	width: 90%;
+	max-height: 80vh;
+	overflow-y: auto;
+`
+
+const ModalTitle = styled.h3`
+	font-size: 20px;
+	font-weight: 600;
+	margin-bottom: 16px;
+`
+
+const ModalDetail = styled.p`
+	margin: 8px 0;
+	font-size: 14px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+`
+
+const CloseButton = styled.button`
+	margin-top: 20px;
+	padding: 10px;
+	width: 100%;
+	background: #1a1a1a;
+	color: white;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+`
+
 const Admin = () => {
 	const [allBookings, setAllBookings] = useState([])
 	const [filteredBookings, setFilteredBookings] = useState([])
 	const [activeFilter, setActiveFilter] = useState('all')
 	const [currentPage, setCurrentPage] = useState(1)
 	const [loading, setLoading] = useState(true)
-	const [stats, setStats] = useState({ new: 0, assigned: 0, completed: 0 })
+	const [selectedBooking, setSelectedBooking] = useState(null)
+	const [stats, setStats] = useState({ new: 0, assigned: 0, completed: 0, total: 0 })
 	const itemsPerPage = 5
 	const navigate = useNavigate()
 
@@ -317,8 +413,6 @@ const Admin = () => {
 			return
 		}
 
-		loadBookings()
-
 		const unsubscribe = onSnapshot(
 			collection(db, 'bookings'),
 			snapshot => {
@@ -326,7 +420,7 @@ const Admin = () => {
 					id: doc.id,
 					...doc.data(),
 				}))
-				console.log('Загружено заявок в реальном времени:', bookingsData.length)
+				console.log('Загружено заявок:', bookingsData.length)
 				setAllBookings(bookingsData)
 				updateStats(bookingsData)
 				setLoading(false)
@@ -346,36 +440,14 @@ const Admin = () => {
 
 	const updateStats = bookings => {
 		const newCount = bookings.filter(b => b.status === 'Новая').length
-		const assignedCount = bookings.filter(
-			b => b.status === 'Банкет назначен',
-		).length
-		const completedCount = bookings.filter(
-			b => b.status === 'Банкет завершен',
-		).length
+		const assignedCount = bookings.filter(b => b.status === 'Банкет назначен').length
+		const completedCount = bookings.filter(b => b.status === 'Банкет завершен').length
 		setStats({
 			new: newCount,
 			assigned: assignedCount,
 			completed: completedCount,
+			total: bookings.length,
 		})
-	}
-
-	const loadBookings = async () => {
-		try {
-			setLoading(true)
-			const querySnapshot = await getDocs(collection(db, 'bookings'))
-			const bookingsData = querySnapshot.docs.map(doc => ({
-				id: doc.id,
-				...doc.data(),
-			}))
-			console.log('Загружено заявок:', bookingsData.length)
-			console.log('Данные заявок:', bookingsData)
-			setAllBookings(bookingsData)
-			updateStats(bookingsData)
-		} catch (error) {
-			console.error('Ошибка загрузки заявок:', error)
-		} finally {
-			setLoading(false)
-		}
 	}
 
 	const filterBookings = () => {
@@ -398,6 +470,18 @@ const Admin = () => {
 		}
 	}
 
+	const deleteBooking = async (bookingId) => {
+		if (window.confirm('Вы уверены, что хотите удалить эту заявку?')) {
+			try {
+				await deleteDoc(doc(db, 'bookings', bookingId))
+				console.log('Заявка удалена')
+			} catch (error) {
+				console.error('Ошибка удаления:', error)
+				alert('Ошибка при удалении заявки')
+			}
+		}
+	}
+
 	const handleLogout = async () => {
 		localStorage.removeItem('isAdmin')
 		localStorage.removeItem('adminLogin')
@@ -416,10 +500,16 @@ const Admin = () => {
 
 	const totalPages = Math.ceil(filteredBookings.length / itemsPerPage)
 	const startIndex = (currentPage - 1) * itemsPerPage
-	const currentBookings = filteredBookings.slice(
-		startIndex,
-		startIndex + itemsPerPage,
-	)
+	const currentBookings = filteredBookings.slice(startIndex, startIndex + itemsPerPage)
+
+	const formatDate = (dateStr) => {
+		if (!dateStr) return 'Не указана'
+		if (dateStr.includes('-')) {
+			const [year, month, day] = dateStr.split('-')
+			return `${day}.${month}.${year}`
+		}
+		return dateStr
+	}
 
 	if (loading) {
 		return (
@@ -433,9 +523,7 @@ const Admin = () => {
 					</HeaderButtons>
 				</Header>
 				<Content>
-					<div style={{ textAlign: 'center', padding: 60 }}>
-						Загрузка заявок...
-					</div>
+					<div style={{ textAlign: 'center', padding: 60 }}>Загрузка заявок...</div>
 				</Content>
 			</Container>
 		)
@@ -446,7 +534,7 @@ const Admin = () => {
 			<Header>
 				<HeaderTitle>Панель администратора</HeaderTitle>
 				<HeaderButtons>
-					<IconButton onClick={loadBookings}>
+					<IconButton onClick={() => window.location.reload()}>
 						<RefreshCw size={18} />
 						Обновить
 					</IconButton>
@@ -458,15 +546,19 @@ const Admin = () => {
 
 			<Content>
 				<StatsBar>
-					<StatCard>
-						<StatNumber>{stats.new}</StatNumber>
-						<StatLabel>Новые заявки</StatLabel>
+					<StatCard onClick={() => setActiveFilter('all')}>
+						<StatNumber>{stats.total}</StatNumber>
+						<StatLabel>Всего заявок</StatLabel>
 					</StatCard>
-					<StatCard>
+					<StatCard onClick={() => setActiveFilter('Новая')}>
+						<StatNumber>{stats.new}</StatNumber>
+						<StatLabel>Новые</StatLabel>
+					</StatCard>
+					<StatCard onClick={() => setActiveFilter('Банкет назначен')}>
 						<StatNumber>{stats.assigned}</StatNumber>
 						<StatLabel>Назначенные</StatLabel>
 					</StatCard>
-					<StatCard>
+					<StatCard onClick={() => setActiveFilter('Банкет завершен')}>
 						<StatNumber>{stats.completed}</StatNumber>
 						<StatLabel>Завершенные</StatLabel>
 					</StatCard>
@@ -508,26 +600,22 @@ const Admin = () => {
 						<EmptyState>
 							<RefreshCw size={48} />
 							<p>Нет заявок с таким статусом</p>
-							<button
-								onClick={loadBookings}
-								style={{
-									marginTop: 16,
-									padding: '8px 20px',
-									background: '#1a1a1a',
-									color: 'white',
-									border: 'none',
-									borderRadius: 8,
-									cursor: 'pointer',
-								}}
-							>
-								Обновить список
-							</button>
 						</EmptyState>
 					) : (
 						currentBookings.map(booking => (
 							<BookingCard key={booking.id}>
 								<BookingHeader>
-									<UserName>{booking.userName || 'Пользователь'}</UserName>
+									<UserInfo>
+										<UserAvatar>
+											<User size={20} />
+										</UserAvatar>
+										<div>
+											<UserName>{booking.userName || 'Пользователь'}</UserName>
+											<UserDetails>
+												ID: {booking.userId?.substring(0, 8)}...
+											</UserDetails>
+										</div>
+									</UserInfo>
 									<StatusBadge status={booking.status}>
 										{booking.status}
 									</StatusBadge>
@@ -535,20 +623,24 @@ const Admin = () => {
 
 								<BookingDetails>
 									<DetailItem>
+										<MapPin size={14} />
 										<DetailLabel>Помещение:</DetailLabel>
 										{booking.venue || 'Не указано'}
 									</DetailItem>
 									<DetailItem>
+										<Calendar size={14} />
 										<DetailLabel>Дата:</DetailLabel>
-										{booking.dateOriginal || booking.date || 'Не указана'}
+										{formatDate(booking.dateOriginal || booking.date)}
 									</DetailItem>
 									<DetailItem>
+										<CreditCard size={14} />
 										<DetailLabel>Оплата:</DetailLabel>
 										{booking.paymentMethod || 'Не указан'}
 									</DetailItem>
 									<DetailItem>
-										<DetailLabel>ID заявки:</DetailLabel>
-										{booking.id.substring(0, 8)}...
+										<Clock size={14} />
+										<DetailLabel>Создана:</DetailLabel>
+										{booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : 'Неизвестно'}
 									</DetailItem>
 								</BookingDetails>
 
@@ -558,25 +650,25 @@ const Admin = () => {
 
 								<ActionButtons>
 									{booking.status === 'Новая' && (
-										<ApproveButton
-											onClick={() =>
-												updateStatus(booking.id, 'Банкет назначен')
-											}
-										>
+										<ApproveButton onClick={() => updateStatus(booking.id, 'Банкет назначен')}>
 											<CheckCircle size={14} />
 											Назначить банкет
 										</ApproveButton>
 									)}
 									{booking.status === 'Банкет назначен' && (
-										<CompleteButton
-											onClick={() =>
-												updateStatus(booking.id, 'Банкет завершен')
-											}
-										>
+										<CompleteButton onClick={() => updateStatus(booking.id, 'Банкет завершен')}>
 											<XCircle size={14} />
 											Завершить банкет
 										</CompleteButton>
 									)}
+									<ActionButton onClick={() => setSelectedBooking(booking)}>
+										<Eye size={14} />
+										Детали
+									</ActionButton>
+									<DeleteButton onClick={() => deleteBooking(booking.id)}>
+										<Trash2 size={14} />
+										Удалить
+									</DeleteButton>
 								</ActionButtons>
 							</BookingCard>
 						))
@@ -596,9 +688,7 @@ const Admin = () => {
 							Страница {currentPage} из {totalPages}
 						</PageInfo>
 						<PageButton
-							onClick={() =>
-								setCurrentPage(prev => Math.min(totalPages, prev + 1))
-							}
+							onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
 							disabled={currentPage === totalPages}
 						>
 							Вперед
@@ -607,6 +697,25 @@ const Admin = () => {
 					</Pagination>
 				)}
 			</Content>
+
+			{selectedBooking && (
+				<Modal onClick={() => setSelectedBooking(null)}>
+					<ModalContent onClick={e => e.stopPropagation()}>
+						<ModalTitle>Детали заявки</ModalTitle>
+						<ModalDetail><User size={16} /> Клиент: {selectedBooking.userName || 'Пользователь'}</ModalDetail>
+						<ModalDetail><Mail size={16} /> ID пользователя: {selectedBooking.userId?.substring(0, 15)}...</ModalDetail>
+						<ModalDetail><MapPin size={16} /> Помещение: {selectedBooking.venue}</ModalDetail>
+						<ModalDetail><Calendar size={16} /> Дата: {formatDate(selectedBooking.dateOriginal || selectedBooking.date)}</ModalDetail>
+						<ModalDetail><CreditCard size={16} /> Способ оплаты: {selectedBooking.paymentMethod}</ModalDetail>
+						<ModalDetail><Clock size={16} /> Статус: {selectedBooking.status}</ModalDetail>
+						<ModalDetail><Clock size={16} /> Создана: {selectedBooking.createdAt ? new Date(selectedBooking.createdAt).toLocaleString() : 'Неизвестно'}</ModalDetail>
+						{selectedBooking.review && (
+							<ModalDetail>Отзыв: {selectedBooking.review}</ModalDetail>
+						)}
+						<CloseButton onClick={() => setSelectedBooking(null)}>Закрыть</CloseButton>
+					</ModalContent>
+				</Modal>
+			)}
 		</Container>
 	)
 }
