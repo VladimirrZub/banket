@@ -473,7 +473,7 @@ const Dashboard = () => {
 	useEffect(() => {
 		if (!user) return
 
-		// Загружаем данные пользователя один раз
+		
 		const loadUserData = async () => {
 			try {
 				const userDoc = await getDoc(doc(db, 'users', user.uid))
@@ -486,7 +486,6 @@ const Dashboard = () => {
 		}
 		loadUserData()
 
-		// РЕАЛЬНОЕ ВРЕМЯ: подписываемся на обновления заявок
 		const q = query(collection(db, 'bookings'), where('userId', '==', user.uid))
 		const unsubscribe = onSnapshot(q, (snapshot) => {
 			const bookingsData = snapshot.docs.map(doc => ({
@@ -499,7 +498,6 @@ const Dashboard = () => {
 			console.error('Ошибка при получении заявок:', error)
 		})
 
-		// Отписываемся при размонтировании компонента
 		return () => unsubscribe()
 	}, [user])
 

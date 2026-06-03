@@ -276,10 +276,10 @@ const venues = [
 ]
 
 const paymentMethods = [
-	{ id: 'cash', name: 'Наличными', icon: '💰' },
-	{ id: 'card', name: 'Банковской картой', icon: '💳' },
-	{ id: 'transfer', name: 'Безналичный расчет', icon: '🏦' },
-	{ id: 'prepay', name: 'Предоплата 50%', icon: '📝' },
+	{ id: 'cash', name: 'Наличными', icon: '' },
+	{ id: 'card', name: 'Банковской картой', icon: '' },
+	{ id: 'transfer', name: 'Безналичный расчет', icon: '' },
+	{ id: 'prepay', name: 'Предоплата 50%', icon: '' },
 ]
 
 const Booking = () => {
