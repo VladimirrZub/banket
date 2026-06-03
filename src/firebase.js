@@ -2,7 +2,6 @@ import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
-// Замените на свои данные Firebase
 const firebaseConfig = {
 	apiKey: 'AIzaSyAwJFLZ0i-yxSYcASk5GOw2UeUFbhofK10',
 	authDomain: 'banketa-fd151.firebaseapp.com',

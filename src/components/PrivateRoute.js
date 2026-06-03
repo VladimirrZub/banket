@@ -8,7 +8,6 @@ const PrivateRoute = ({ children, requireAdmin = false }) => {
 	const [isAdmin, setIsAdmin] = useState(false)
 
 	useEffect(() => {
-		// Проверка на администратора из localStorage
 		const checkAdmin = () => {
 			const adminFlag =
 				localStorage.getItem('isAdmin') === 'true' ||
@@ -24,12 +23,10 @@ const PrivateRoute = ({ children, requireAdmin = false }) => {
 			return false
 		}
 
-		// Если админ, не ждем Firebase
 		if (checkAdmin()) {
 			return
 		}
 
-		// Обычная проверка Firebase
 		const unsubscribe = auth.onAuthStateChanged(firebaseUser => {
 			setUser(firebaseUser)
 			setLoading(false)
@@ -59,7 +56,6 @@ const PrivateRoute = ({ children, requireAdmin = false }) => {
 		return <Navigate to='/login' />
 	}
 
-	// Проверка на администратора
 	if (requireAdmin) {
 		const isAdminUser =
 			isAdmin ||

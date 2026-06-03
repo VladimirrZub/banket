@@ -86,7 +86,6 @@ const Dot = styled.button`
 	}
 `
 
-// Ваши изображения из папки public/images/
 const images = [
 	'/images/1.jpg',
 	'/images/2.jpg',
@@ -100,7 +99,6 @@ const Slider = () => {
 	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
-		// Проверяем загрузку изображений
 		const checkImages = async () => {
 			const validImages = []
 			for (const imgSrc of images) {
@@ -109,7 +107,6 @@ const Slider = () => {
 					if (response.ok) {
 						validImages.push(imgSrc)
 					} else {
-						// Fallback изображение
 						validImages.push(
 							'https://images.pexels.com/photos/260922/pexels-photo-260922.jpeg?w=940&h=650&fit=crop',
 						)

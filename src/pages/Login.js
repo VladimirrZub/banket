@@ -117,7 +117,6 @@ const Login = () => {
 	const [loading, setLoading] = useState(false)
 	const navigate = useNavigate()
 
-	// Функция для поиска email по логину
 	const findEmailByLogin = async login => {
 		try {
 			const usersRef = collection(db, 'users')
@@ -140,15 +139,12 @@ const Login = () => {
 		setError('')
 		setLoading(true)
 
-		// ПРОВЕРКА НА АДМИНИСТРАТОРА (самая первая, до любых других проверок)
 		if (loginInput === 'Admin26' && password === 'Demo20') {
 			console.log('Администратор авторизован')
-			// Сохраняем флаг администратора
 			localStorage.setItem('isAdmin', 'true')
 			sessionStorage.setItem('isAdmin', 'true')
 			localStorage.setItem('adminLogin', 'true')
 
-			// Создаем фейкового пользователя для админа
 			const adminUser = {
 				uid: 'admin_uid_' + Date.now(),
 				email: 'admin@banketam.net',
@@ -167,7 +163,6 @@ const Login = () => {
 		try {
 			let email = loginInput
 
-			// Если логин не содержит @, пробуем найти email в базе
 			if (!loginInput.includes('@')) {
 				const foundEmail = await findEmailByLogin(loginInput)
 				if (foundEmail) {
@@ -179,14 +174,12 @@ const Login = () => {
 				}
 			}
 
-			// Пытаемся войти с найденным email
 			const userCredential = await signInWithEmailAndPassword(
 				auth,
 				email,
 				password,
 			)
 
-			// Очищаем админ флаги
 			localStorage.removeItem('isAdmin')
 			localStorage.removeItem('adminLogin')
 			localStorage.removeItem('adminUser')

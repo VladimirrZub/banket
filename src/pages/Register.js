@@ -179,19 +179,16 @@ const Register = () => {
 		}
 
 		try {
-			// Создаем пользователя в Authentication используя email
 			const userCredential = await createUserWithEmailAndPassword(
 				auth,
 				formData.email,
 				formData.password,
 			)
 
-			// Обновляем профиль
 			await updateProfile(userCredential.user, {
 				displayName: formData.fullName,
 			})
 
-			// Сохраняем данные в Firestore, включая логин
 			await setDoc(doc(db, 'users', userCredential.user.uid), {
 				login: formData.login,
 				fullName: formData.fullName,

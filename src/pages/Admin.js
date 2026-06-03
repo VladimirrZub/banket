@@ -306,7 +306,6 @@ const Admin = () => {
 	const itemsPerPage = 5
 	const navigate = useNavigate()
 
-	// Проверка прав администратора при загрузке
 	useEffect(() => {
 		const isAdmin =
 			localStorage.getItem('isAdmin') === 'true' ||
@@ -320,7 +319,6 @@ const Admin = () => {
 
 		loadBookings()
 
-		// Настройка реального времени для обновления заявок
 		const unsubscribe = onSnapshot(
 			collection(db, 'bookings'),
 			snapshot => {
